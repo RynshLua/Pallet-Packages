@@ -1,8 +1,8 @@
 -- Services
-local contextService = game:GetService("ContextActionService")
+local ContextActionService = game:GetService("ContextActionService")
 
 -- Types
-type Keybind = {Keycodes: {Enum.KeyCode?}, Connection: RBXScriptConnection?}
+type Keybind = {Keycodes: {Enum.KeyCode?}}
 type ActionCallback = (InputObject) -> ()
 
 type CachedKeybind = {
@@ -26,12 +26,13 @@ local function create_action_handler(id: string)
 	end
 end
 
-local function bind_keys_to_action(bind_id: string, keycodes: {Enum.KeyCode?}): RBXScriptConnection
-	return contextService:BindAction(bind_id, create_action_handler(bind_id), false, table.unpack(keycodes))
+local function bind_keys_to_action(bind_id: string, keycodes: {Enum.KeyCode?})
+	return ContextActionService:BindAction(bind_id, create_action_handler(bind_id), false, table.unpack(keycodes))
 end
 
 function KeyMap.RegisterKeybind(bind_id: string, keycodes: {Enum.KeyCode?})
-	Keybinds[bind_id] = {Keycodes = keycodes, Connection = bind_keys_to_action(bind_id, keycodes)}
+	Keybinds[bind_id] = {Keycodes = keycodes}
+	bind_keys_to_action(bind_id, keycodes)
 end
 
 function KeyMap.AddAction(bind_name: string, callback: ActionCallback)
@@ -46,8 +47,8 @@ function KeyMap.UpdateKeybind(bind_name: string, new_key: Enum.KeyCode?, is_seco
 	local keycodes = keybind.Keycodes
 	keycodes[is_secondary and 2 or 1] = new_key
 
-	contextService:UnbindAction(bind_name)
-	keybind.Connection = bind_keys_to_action(bind_name, keycodes)
+	ContextActionService:UnbindAction(bind_name)
+	bind_keys_to_action(bind_name, keycodes)
 end
 
 return KeyMap
